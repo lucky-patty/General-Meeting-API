@@ -27,8 +27,14 @@ func main () {
     cancel()
   }()
 
+  // Connect to database
+  dbClient, err := db.NewDatabase(ctx, os.Getenv("DB_URL"), "meeting_bot")
+  if err != nil {
+    log.Fatalf("DB Failed: %v", err)
+  }
+  defer dbClient.Close(ctx)
 
-
+  // Run the app
   go monitorWeb(ctx)
   //  go monitoBot(ctx)
   
