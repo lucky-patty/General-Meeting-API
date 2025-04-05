@@ -16,6 +16,22 @@ func main () {
   // Cancelable context shared across app 
   ctx, cancel := context.WithCancel(context.Background())
 
+  // Load env 
+  err := tool.LoadEnvFile(".env")
+  if err != nil {
+    log.Fatal("Error Loading .env: ", err)
+    os.Exit(1)
+  }
+
+  
+  es, errElastic := db.ElasticNewClient(elasticAddr)
+  if errElastic != nil {
+    log.Fatal("Error connect elastic db: ", errElastic)
+    os.Exit(1)
+  }
+  
+  
+
   // OS signal trap 
   sigs := make(chan os.Signal, 1)
   signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
