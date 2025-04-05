@@ -8,7 +8,7 @@ import (
   "time"
   "encoding/json"
   
-  //"meeting_recorders/thirdparty/whisper"
+  "meeting_recorders/thirdparty/whisper"
   "meeting_recorders/thirdparty/gpt"
   "meeting_recorders/tool"
   "meeting_recorders/service"
@@ -27,6 +27,12 @@ func main() {
     os.Exit(1)
   }
 
+  openAIKey := os.Getenv("OPENAI_API_KEY")
+  fmt.Println("Open API Key: ", openAIKey)
+  if openAIKey == "" {
+    log.Fatal("There is no OPENAI KEY")
+  }
+
 
   elasticAddr := os.Getenv("ELASTICS_ADDR")
  
@@ -38,28 +44,32 @@ func main() {
     os.Exit(1)
   }
 
+  // Init clients 
+  w := &whisper.WhisperClient{APIKey: openAIKey}
+  g := &gpt.GPTClient{APIKey: openAIKey, Model: "gpt-3.5-turbo"}
   transcriptService := &service.TranscriptService{
     Psql: nil,
     Est: es,
   }
+
+  meetingService := &service.MeetingService{
+    Psql: nil,
+    Es: es,
+    Gpt: g,
+    Whisper: w,
+  }
  
   service := &service.Service{
     Transcript: transcriptService,
+    Meeting:  meetingService,
   }
 
   fmt.Println("Run Transcript Check")
   service.Transcript.Test()
+
+
+  service.Meeting.FindAll(ctx)
   //  audioPath := "record/eng.mp3"
-  openAIKey := os.Getenv("OPENAI_API_KEY")
-
-  fmt.Println("Open API Key: ", openAIKey)
-  if openAIKey == "" {
-    log.Fatal("There is no OPENAI KEY")
-  }
-
-  // Init clients 
- // w := &whisper.WhisperClient{APIKey: openAIKey}
-  g := &gpt.GPTClient{APIKey: openAIKey, Model: "gpt-3.5-turbo"}
 
   //test := &type.WhisperTranscript{}
   testResp := `{

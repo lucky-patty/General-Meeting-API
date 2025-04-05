@@ -9,6 +9,8 @@ import (
 func NewRouter() http.Handler {
   mux := http.NewServeMux()
   // RegisterTransactionRoutes(mux)
+  // RegisterTranscripRoutes(mux)
+
   RegisterUserRoutes(mux)
 
   return middleware.Chain(
