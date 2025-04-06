@@ -37,7 +37,6 @@ func main() {
   elasticAddr := os.Getenv("ELASTICS_ADDR")
  
   fmt.Println("Elastic Address: ", elasticAddr)
-
   es, errElastic := db.ElasticNewClient(elasticAddr)
   if errElastic != nil {
     log.Fatal("Error connect elastic db: ", errElastic)
@@ -47,11 +46,7 @@ func main() {
   // Init clients 
   w := &whisper.WhisperClient{APIKey: openAIKey}
   g := &gpt.GPTClient{APIKey: openAIKey, Model: "gpt-3.5-turbo"}
-  transcriptService := &service.TranscriptService{
-    Psql: nil,
-    Est: es,
-  }
-
+  
   meetingService := &service.MeetingService{
     Psql: nil,
     Es: es,
@@ -60,14 +55,10 @@ func main() {
   }
  
   service := &service.Service{
-    Transcript: transcriptService,
     Meeting:  meetingService,
   }
 
   fmt.Println("Run Transcript Check")
-  service.Transcript.Test()
-
-
   service.Meeting.FindAll(ctx)
   //  audioPath := "record/eng.mp3"
 

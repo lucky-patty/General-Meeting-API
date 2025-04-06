@@ -9,10 +9,8 @@ import (
 
 func NewRouter(svc *service.Service) http.Handler {
   mux := http.NewServeMux()
-  // RegisterTransactionRoutes(mux)
-  // RegisterTranscripRoutes(mux)
   RegisterMeetingRoutes(mux, svc.Meeting)
-  RegisterUserRoutes(mux)
+  //RegisterUserRoutes(mux)
 
   return middleware.Chain(
       mux,
