@@ -45,6 +45,59 @@ func (s *MeetingService) FindAll(ctx context.Context) ([]types.MeetingNote, erro
     return nil, err
   }
 
+  res, errFind := s.Es.Search(
+    s.Es.Search.WithContext(ctx),
+    s.Es.Search.WithIndex("meeting_notes"),
+    s.Es.Search.WithBody(&buf),
+    s.Es.Search.WithTrackTotalHits(true),
+    s.Es.Search.WithPretty(),
+  )
+
+  if errFind != nil {
+    return nil, errFind
+  }
+  defer res.Body.Close() 
+
+  var esResp struct {
+    Hits struct {
+      Hits []struct {
+        Source types.MeetingNote `json:"_source"`
+      } `json:"hits"`
+    } `json:"hits"`
+  }
+
+  if err := json.NewDecoder(res.Body).Decode(&esResp); err != nil {
+    return nil, err 
+  }
+
+  notes := make([]types.MeetingNote, 0)
+  for _, hit := range esResp.Hits.Hits {
+    notes = append(notes, hit.Source)
+  }
+
+  fmt.Println("Notes: ", notes)
+  return notes, nil
+}
+
+func (s *MeetingService) FindByMeetingID(ctx context.Context, id string) ([]types.MeetingNote, error) {
+  fmt.Println("Meeting ID: ", id)
+  var buf bytes.Buffer 
+  // Build query 
+  query := map[string]interface{} {
+    "query": map[string]interface{}{
+      "term": map[string]interface{}{
+        "meeting_id": map[string]interface{}{
+          "value": id,
+        },
+      },
+      
+    },
+  }
+
+  if err := json.NewEncoder(&buf).Encode(query); err != nil {
+    return nil, err
+  }
+
   res, err := s.Es.Search(
     s.Es.Search.WithContext(ctx),
     s.Es.Search.WithIndex("meeting_notes"),

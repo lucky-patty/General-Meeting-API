@@ -36,7 +36,25 @@ func (c *MeetingController) FindAll(w http.ResponseWriter, r *http.Request) {
   json.NewEncoder(w).Encode(res)
 }
 
-func (c *MeetingController) FindByMeetingID(w http.ResponseWriter, r *http.Request) {}
+func (c *MeetingController) FindByMeetingID(w http.ResponseWriter, r *http.Request) {
+  id := r.URL.Query().Get("id")
+  
+  if id == "" {
+    http.Error(w, "Missing 'id' parameter", http.StatusBadRequest)
+    return
+  }
+  
+  ctx := r.Context()
+  res, err := c.Service.FindByMeetingID(ctx, id)
+  if err != nil {
+    http.Error(w, fmt.Sprintf("Error: %v", err), http.StatusInternalServerError)
+    return
+  }
+
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(http.StatusOK)
+  json.NewEncoder(w).Encode(res)
+}
 
 func (c *MeetingController) FindByUserID(w http.ResponseWriter, r *http.Request) {}
 
