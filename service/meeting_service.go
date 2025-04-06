@@ -142,7 +142,7 @@ func (s *MeetingService) SummariseAudio(transcript string) (string, error) {
 }
 
 // Insert to elastic search 
-func (s *MeetingService) InsertMeetingNote(ctx context.Context, note types.MeetingNote) error {
+func (s *MeetingService) InsertMeetingNote(ctx context.Context, note *types.MeetingNote) error {
   body, err := json.Marshal(note)
   if err != nil {
     return fmt.Errorf("Marshal error: %w", err)
