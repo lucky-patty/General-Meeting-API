@@ -2,7 +2,7 @@
 Summarise your minute meeting with ease with our API.
 
 ## Goal
-This API aims to transcript the audio meeting then use AI to summarise the meeting
+This API aims to transcript the audio meeting and use AI to summarise the meeting using WhisperAI / GPT
 
 ## Architecture
 Instead of using Javascript or Typescript we will use Golang since it excels in concurrency
@@ -20,7 +20,11 @@ This project won't use `docker-compose` since I believe the best way to deal wit
 ## Encryption data
 There won't be **encryption** script since eventually we can use it for searching and it will slow us down. The encryption layer will be implemented on **authentication**
 
-### Installation
+## Requirement
+- Go version `1.22.0`
+- Elasticsearch version `8.17.4`
+
+## Installation
 ```
 docker build -t <IMAGE_NAME> .
 ```
