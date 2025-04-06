@@ -18,3 +18,9 @@ type MeetingNote struct {
   Tags      []string `json:"tags"`
   CreateDate string  `json:"create_date"`
 }
+
+type MeetingRequest struct{
+  UserID    string 
+  MeetingID string
+  MeetingTitle string
+}

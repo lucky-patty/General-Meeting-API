@@ -1,1 +1,4 @@
 .env
+
+record/*.mp3
+record/*/
