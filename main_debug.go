@@ -8,16 +8,17 @@ import (
   "time"
   "encoding/json"
   
-  //"meeting_recorders/thirdparty/whisper"
+  "meeting_recorders/thirdparty/whisper"
   "meeting_recorders/thirdparty/gpt"
   "meeting_recorders/tool"
+  "meeting_recorders/service"
   mType "meeting_recorders/types"
+  "meeting_recorders/db"
 )
 
 func main() {
   ctx, cancel := context.WithTimeout(context.Background(), 60 *time.Second)
   defer cancel()
-
 
   // Load env 
   err := tool.LoadEnvFile(".env")
@@ -26,22 +27,46 @@ func main() {
     os.Exit(1)
   }
 
-//  audioPath := "record/eng.mp3"
   openAIKey := os.Getenv("OPENAI_API_KEY")
-
   fmt.Println("Open API Key: ", openAIKey)
   if openAIKey == "" {
     log.Fatal("There is no OPENAI KEY")
   }
 
+
+  elasticAddr := os.Getenv("ELASTICS_ADDR")
+ 
+  fmt.Println("Elastic Address: ", elasticAddr)
+  es, errElastic := db.ElasticNewClient(elasticAddr)
+  if errElastic != nil {
+    log.Fatal("Error connect elastic db: ", errElastic)
+    os.Exit(1)
+  }
+
   // Init clients 
- // w := &whisper.WhisperClient{APIKey: openAIKey}
+  w := &whisper.WhisperClient{APIKey: openAIKey}
   g := &gpt.GPTClient{APIKey: openAIKey, Model: "gpt-3.5-turbo"}
+  
+  meetingService := &service.MeetingService{
+    Psql: nil,
+    Es: es,
+    Gpt: g,
+    Whisper: w,
+  }
+ 
+  service := &service.Service{
+    Meeting:  meetingService,
+  }
+
+  fmt.Println("Run Transcript Check")
+  service.Meeting.FindAll(ctx)
+  //  audioPath := "record/eng.mp3"
 
   //test := &type.WhisperTranscript{}
   testResp := `{
   "text": "I hate verbs in English. I dance, you dance, he dances. Why? Is he dancing more than me? I don't think so. 645 people dance and he dances. How much is this mother****** dancing?"
   }`
+
   var transcript mType.WhisperTranscript
   errTranscript := json.Unmarshal([]byte(testResp), &transcript)
   if errTranscript != nil {

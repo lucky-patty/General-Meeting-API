@@ -4,12 +4,13 @@ import (
   "net/http"
 
   "meeting_recorders/middleware"
+  "meeting_recorders/service"
 )
 
-func NewRouter() http.Handler {
+func NewRouter(svc *service.Service) http.Handler {
   mux := http.NewServeMux()
-  // RegisterTransactionRoutes(mux)
-  RegisterUserRoutes(mux)
+  RegisterMeetingRoutes(mux, svc.Meeting)
+  //RegisterUserRoutes(mux)
 
   return middleware.Chain(
       mux,
