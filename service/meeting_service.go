@@ -78,6 +78,41 @@ func (s *MeetingService) FindAll(ctx context.Context) ([]types.MeetingNote, erro
   fmt.Println("Notes: ", notes)
   return notes, nil
 }
-// Insert 
+
+// Store and translate audio to script
+func (s *MeetingService) StoreAndTranslate(path string) (string,error) {
+  return "", nil
+}
+// Summarise everything
+func (s *MeetingService) SummariseAudio(transcript string) (string, error) {
+  return "", nil
+}
+
+// Insert to elastic search 
+func (s *MeetingService) InsertMeetingNote(ctx context.Context, note types.MeetingNote) error {
+  body, err := json.Marshal(note)
+  if err != nil {
+    return fmt.Errorf("Marshal error: %w", err)
+  }
+
+  res, err := s.Es.Index(
+    "meeting_notes",
+    bytes.NewReader(body),
+    s.Es.Index.WithContext(ctx),
+    s.Es.Index.WithRefresh("true"),
+  )
+  if err != nil {
+    return fmt.Errorf("ES insert error: %w", err)
+  }
+  defer res.Body.Close()
+
+  if res.IsError() {
+    fmt.Println("ES insert failed: %s", res.String())
+    return fmt.Errorf("ES Error: %s", res.String())
+  }
+
+  fmt.Println("Meeting note inserted")
+  return nil
+}
 // List All
 // List one
