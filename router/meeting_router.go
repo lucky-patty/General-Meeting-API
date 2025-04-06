@@ -14,4 +14,6 @@ func RegisterMeetingRoutes(mux *http.ServeMux, svc *service.MeetingService) {
   mux.HandleFunc("/meeting/test", tool.Method(http.MethodGet, meeting.Test))
   mux.HandleFunc("/meeting/findAll", tool.Method(http.MethodGet, meeting.FindAll))
   mux.HandleFunc("/meeting/findByMeetingID", tool.Method(http.MethodGet, meeting.FindByMeetingID))
+ // mux.HandleFunc("/meeting/findByUserID", tool.Method(http.MethodGet, meeting.FindByUserID))
+  mux.HandleFunc("/meeting/insertMeeting", tool.Method(http.MethodPost, meeting.UploadMeeting))
 }
