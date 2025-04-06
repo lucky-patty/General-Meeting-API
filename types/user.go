@@ -4,6 +4,13 @@ import "time"
 
 type User struct {
   ID          int   `json:"user_id"`
-  Username    string `json:"username"`
+  Email       string `json:"email"`
+  Password    string `json:"password"`
   CreateDate  time.Time `json:"create_date"`
 }
+
+type UserRequest struct {
+  Email     string   `json:"email"`
+  Password  string  `json:"password"`
+}
+
