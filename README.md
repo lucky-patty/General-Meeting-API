@@ -24,7 +24,15 @@ There won't be **encryption** script since eventually we can use it for searchin
 - Go version `1.22.0`
 - Elasticsearch version `8.17.4`
 
-## Installation
+## Deploy (locally)
+I use `docker compose` to showcase the application. However, please note that this is not for the **production environment**.
 ```
-docker build -t <IMAGE_NAME> .
+docker compose up --build
+```
+### Note
+- Elasticsearch can take a long time to launch so I wrote the script to make sure that backend will wait
+
+## Deploy (Production)
+```
+kubectl apply -f deploy/deployment.yaml
 ```
