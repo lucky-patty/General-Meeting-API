@@ -38,6 +38,7 @@ func main () {
 
   // Connect DBs 
   elasticAddr := os.Getenv("ELASTICS_ADDR")
+  // elasticAddr := os.Getenv("ELASTIC_URL")
   //psqlAddr := os.Getenv("POSTGRESQL_ADDR")
 
   es, errElastic := db.ElasticNewClient(elasticAddr)

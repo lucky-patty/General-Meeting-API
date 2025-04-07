@@ -7,6 +7,7 @@ import (
   "time"
   "os"
   "io"
+  "path/filepath"
 
   "meeting_recorders/types"
   "meeting_recorders/service"
@@ -86,7 +87,13 @@ func (c *MeetingController) UploadMeeting (w http.ResponseWriter, r *http.Reques
   }
   defer file.Close()
 
-  targetDir := fmt.Sprintf("record/%s", insertReq.MeetingID)
+  recordDir := os.Getenv("RECORD_PATH")
+  if recordDir == "" {
+    recordDir = "record"
+  }
+
+  targetDir := filepath.Join(recordDir, insertReq.MeetingID)
+  //targetDir := fmt.Sprintf("record/%s", insertReq.MeetingID)
   if err := os.MkdirAll(targetDir, 0755); err != nil {
     http.Error(w, "Failed to create directory", http.StatusInternalServerError)
     return

@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM golang:1.22 AS builder
+FROM golang:1.23.8 AS builder
 
 WORKDIR /app
 
@@ -14,10 +14,10 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o app .
 
 # Stage 2: Minimal
-FROM alpine:lastest
+FROM alpine:latest
 
 # Add CA certificates (needed if your app makes HTTPS request)
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates curl
 
 WORKDIR /app
 
