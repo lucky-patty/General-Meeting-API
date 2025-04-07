@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mm-be
+  namespace: mm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mm-be
+  template:
+    metadata:
+      labels:
+        app: mm-be
+    spec:
+      imagePullSecrets:
+        - name: registry-credentials
+      containers:
+        - name: mm-be
+          image: registry-pattarathon.tech/mm-be:0.0.1-alpha
+          imagePullPolicy: Always
+          args: ["./mm-be", "--debug"]
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: nfs-storage # Must link with the PV
+              mountPath: /data # Directory inside the container
+          env:
+            - name: ES_HOST
+              value: "elasticsearch.database.svc.cluster.local"
+            - name: ES_PORT
+              value: "9200"
+            - name: ES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mm-be-secret
+                  key: username
+            - name: ES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mm-be-secret
+                  key: password
+            - name: ES_NAME
+              value: "meeting_notes"
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mm-be-secret
+                  key: secret_key
+            - name: LOG_TO_STDOUT
+              value: "true"
+            - name: GODEBUG
+              value: "asyncpreemptoff=1"
+      volumes:
+        - name: nfs-storage
+          persistentVolumeClaim:
+            claimName: nfs-pvc-mm # Link with the PVC
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mm-be-service
+  namespace: mm
+  labels:
+    app: mm-be
+spec:
+  selector:
+    app: mm-be
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
