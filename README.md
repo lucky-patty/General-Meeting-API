@@ -11,10 +11,6 @@ Instead of using Javascript or Typescript we will use Golang since it excels in 
 For store the transcript and summarise of the meeting
 #### PostgreSQL
 Use for authentication and store transaction 
-
-## Docker & Docker Compose
-This project won't use `docker-compose` since I believe the best way to deal with the scaling is Kubernetes
-
 ## Encryption data
 There won't be **encryption** script since eventually we can use it for searching and it will slow us down. The encryption layer will be implemented on **authentication**
 
