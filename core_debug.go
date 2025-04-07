@@ -16,7 +16,7 @@ import (
   "meeting_recorders/db"
 )
 
-func main() {
+func core() {
   ctx, cancel := context.WithTimeout(context.Background(), 60 *time.Second)
   defer cancel()
 

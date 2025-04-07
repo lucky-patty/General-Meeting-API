@@ -1,0 +1,69 @@
+services:
+  backend:
+    build: .
+    container_name: backend
+    volumes:
+      - ./.env:/app/.env
+      - ./record:/app/recordings
+      - ./scripts/wait-for.sh:/wait-for.sh
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - PSQL_URL=postgres://app:pass@postgres:5432/mm?sslmode=disable
+      - ELASTICS_ADDR=http://elasticsearch:9200
+      - RECORD_PATH=/app/recordings
+    depends_on:
+      - postgres
+      - elasticsearch
+    entrypoint: >
+      sh -c "/wait-for.sh http://elasticsearch:9200 ./app"
+    restart: on-failure
+
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: mm
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./dev-init/init-psql.sql:/docker-entrypoint-initdb.d/init-psql.sql:ro
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.4
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - cluster.routing.allocation.disk.watermark.low=99%
+      - cluster.routing.allocation.disk.watermark.high=99%
+      - cluster.routing.allocation.disk.watermark.flood_stage=99%
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+
+  elastic-init:
+    image: curlimages/curl:8.5.0
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./dev-init/elastic-init:/init
+    entrypoint: >
+      sh -c "
+        echo '⏳ Waiting for Elasticsearch...';
+        until curl -s http://elasticsearch:9200 >/dev/null; do sleep 2; done;
+        echo '🚀 Creating meeting_notes index...';
+        curl -s -o /dev/null -w '%{http_code}' http://elasticsearch:9200/meeting_notes | grep 404 &&
+        curl -X PUT http://elasticsearch:9200/meeting_notes -H 'Content-Type: application/json' --data @/init/create-meeting-notes-index.json &&
+        echo '✅ meeting_notes index created';
+      "
+
+volumes:
+  pg-data:
+  mongo-data:
+  es-data:
+  recordings-data:

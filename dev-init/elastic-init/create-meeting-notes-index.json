@@ -1,0 +1,16 @@
+{
+  "mappings": {
+    "properties": {
+      "Title": { "type": "text" },
+      "Content": { "type": "text" },
+      "Summary": { "type": "text" },
+      "UserID": { "type": "keyword" },
+      "MeetingID": { "type": "keyword" },
+      "CreateDate": {
+        "type": "date",
+        "format": "strict_date_optional_time||epoch_millis"
+      },
+      "Tag": { "type": "keyword" }
+    }
+  }
+}

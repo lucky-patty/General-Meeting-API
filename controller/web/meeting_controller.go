@@ -4,10 +4,10 @@ import (
   "fmt"
   "net/http"
   "encoding/json"
-
+  "time"
   "os"
   "io"
-
+  "path/filepath"
 
   "meeting_recorders/types"
   "meeting_recorders/service"
@@ -62,7 +62,6 @@ func (c *MeetingController) FindByMeetingID(w http.ResponseWriter, r *http.Reque
 }
 
 func (c *MeetingController) UploadMeeting (w http.ResponseWriter, r *http.Request) {
-//  ctx := r.Context()
   err := r.ParseMultipartForm(50 << 20)
   if err != nil {
     http.Error(w, fmt.Sprintf("Failed to parse form: %v", err), http.StatusBadRequest)
@@ -88,7 +87,13 @@ func (c *MeetingController) UploadMeeting (w http.ResponseWriter, r *http.Reques
   }
   defer file.Close()
 
-  targetDir := fmt.Sprintf("record/%s", insertReq.MeetingID)
+  recordDir := os.Getenv("RECORD_PATH")
+  if recordDir == "" {
+    recordDir = "record"
+  }
+
+  targetDir := filepath.Join(recordDir, insertReq.MeetingID)
+  //targetDir := fmt.Sprintf("record/%s", insertReq.MeetingID)
   if err := os.MkdirAll(targetDir, 0755); err != nil {
     http.Error(w, "Failed to create directory", http.StatusInternalServerError)
     return
@@ -107,8 +112,51 @@ func (c *MeetingController) UploadMeeting (w http.ResponseWriter, r *http.Reques
     return
   }
 
+  // Create context if no issue 
+  ctx := r.Context()
+  // Transcript the audio
+  transcribe, errTranscribe := c.Service.Whisper.Transcribe(ctx, targetPath)
+  if errTranscribe != nil {
+    fmt.Printf("Whisper error: %s \n", errTranscribe)
+    http.Error(w, fmt.Sprintf("Whisper failed: ", errTranscribe), http.StatusInternalServerError)
+    return
+  } 
+
+  fmt.Println("Whisper transcribe: ", transcribe)
+  
+  var transcript types.WhisperTranscript
+  errTranscript := json.Unmarshal([]byte(transcribe), &transcript)
+  if errTranscript != nil {
+    fmt.Printf("Convert error: %s \n", errTranscript)
+    http.Error(w, fmt.Sprintf("Convert from whisper failed: ", errTranscript), http.StatusInternalServerError)
+    return
+  }
+
+  // Summarize
+  summary, err := c.Service.Gpt.Summarize(ctx, transcript.Text)
+  if err != nil {
+  fmt.Println("GPT Error: ", err)
+  http.Error(w, fmt.Sprintf("GPT Error: ", err), http.StatusInternalServerError)
+  return
+  }
+  fmt.Println("Summary: \n", summary)
+ 
+  note := &types.MeetingNote{
+    Title:     insertReq.MeetingTitle,
+    Content:   transcript.Text,
+    Summary:   summary,
+    UserID:    insertReq.UserID,
+    MeetingID: insertReq.MeetingID,
+    CreateDate: time.Now().String(),
+  }
+  errInsert := c.Service.InsertMeetingNote(ctx, note)
+  if errInsert != nil {
+    fmt.Println("ES Errror: ", errInsert)
+    http.Error(w, fmt.Sprintf("ES Insert error: ", errInsert), http.StatusInternalServerError)
+    return
+  }
+
   w.WriteHeader(http.StatusCreated)
   fmt.Printf("Uploaded %s for meeting %s \n", handler.Filename, insertReq.MeetingID)
-  //  ctx := r.Context()
-  // err := c.Service.InsertTranscript(ctx, transcript)
+  
 }

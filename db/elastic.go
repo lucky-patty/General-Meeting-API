@@ -6,6 +6,7 @@ import (
 )
 
 func ElasticNewClient(addr string) (*elasticsearch.Client, error) {
+  fmt.Println("Elastic Address: ", addr)
   cfg := elasticsearch.Config{
     Addresses: []string{
       addr,
