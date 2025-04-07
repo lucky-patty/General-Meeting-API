@@ -11,8 +11,6 @@ Instead of using Javascript or Typescript we will use Golang since it excels in 
 For store the transcript and summarise of the meeting
 #### PostgreSQL
 Use for authentication and store transaction 
-#### MongoDB
-Store log
 
 ## Docker & Docker Compose
 This project won't use `docker-compose` since I believe the best way to deal with the scaling is Kubernetes
@@ -21,10 +19,23 @@ This project won't use `docker-compose` since I believe the best way to deal wit
 There won't be **encryption** script since eventually we can use it for searching and it will slow us down. The encryption layer will be implemented on **authentication**
 
 ## Requirement
-- Go version `1.22.0`
+- Go version `1.23.8`
 - Elasticsearch version `8.17.4`
+- PostgreSQL version `15`
 
-## Installation
+## Setup 
+Please make sure you set `.env` to be the correct one
+
+## Deploy (locally)
+I use `docker compose` to showcase the application. However, please note that this is not for the **production environment**.
+Make sure that `.env` is the same as your `docker-compose.yml`
 ```
-docker build -t <IMAGE_NAME> .
+docker compose up --build
+```
+### Note
+- Elasticsearch can take a long time to launch so I wrote the script to make sure that backend will wait
+
+## Deploy (Production)
+```
+kubectl apply -f deploy/deployment.yaml
 ```
