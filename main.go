@@ -39,11 +39,18 @@ func main () {
   // Connect DBs 
   elasticAddr := os.Getenv("ELASTICS_ADDR")
   // elasticAddr := os.Getenv("ELASTIC_URL")
-  //psqlAddr := os.Getenv("POSTGRESQL_ADDR")
+  psqlAddr := os.Getenv("POSTGRESQL_ADDR")
 
   es, errElastic := db.ElasticNewClient(elasticAddr)
   if errElastic != nil {
     log.Fatal("Error connect elastic db: ", errElastic)
+    os.Exit(1)
+  }
+
+
+  psql, errPsql := db.PsqlNewClient(ctx, psqlAddr)
+  if errPsql != nil {
+    log.Fatal("Error connect psql db: ", errPsql)
     os.Exit(1)
   }
 
@@ -52,14 +59,19 @@ func main () {
   g := &gpt.GPTClient{APIKey: openAIKey, Model: "gpt-3.5-turbo"}
 
   meetingService := &service.MeetingService{
-    Psql: nil,
+    Psql: psql,
     Es: es,
     Gpt: g,
     Whisper: w,
   }
  
+  userService := &service.UserService{
+    Psql:  psql,
+  }
+
   service := &service.Service{
     Meeting:  meetingService,
+    User: userService,
   }
   
   //psql, errPsql := db.PsqlNewClient()

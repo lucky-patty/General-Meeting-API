@@ -10,6 +10,7 @@ import (
 func NewRouter(svc *service.Service) http.Handler {
   mux := http.NewServeMux()
   RegisterMeetingRoutes(mux, svc.Meeting)
+  RegisterUserRoutes(mux, svc.User)
   //RegisterUserRoutes(mux)
 
   return middleware.Chain(

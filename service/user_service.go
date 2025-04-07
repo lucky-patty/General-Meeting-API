@@ -6,6 +6,9 @@ import (
 
   "meeting_recorders/types"
   "meeting_recorders/db"
+
+
+	"github.com/jackc/pgx/v5"
 )
 
 type UserService struct {
@@ -18,6 +21,10 @@ func (s *UserService) FindByEmail(ctx context.Context, email string) (*types.Use
   err := s.Psql.Pool.QueryRow(ctx,query,email).Scan(&user.ID, &user.Password)
 
   if err != nil {
+    if err == pgx.ErrNoRows {
+      return nil, nil
+    }
+
     fmt.Println("Psql error: ", err)
     return nil, err 
   }
@@ -26,8 +33,14 @@ func (s *UserService) FindByEmail(ctx context.Context, email string) (*types.Use
 }
 
 func (s *UserService) Register(ctx context.Context, u *types.UserRequest) (bool, error) {
-//  query := `` 
-  return false, nil
+  query := `insert into users(email,password) values ($1, $2)`
+  _, err := s.Psql.Pool.Exec(ctx, query, u.Email, u.Password)
+  if err != nil {
+    fmt.Println("Psql error: ", err)
+    return false, err 
+  }
+
+  return true, nil
 } 
 
 

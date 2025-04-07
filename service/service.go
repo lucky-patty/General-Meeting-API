@@ -1,7 +1,7 @@
 package service
 
 type Service struct {
-//  User       *UserService
+  User       *UserService
   Meeting    *MeetingService
 }
 
